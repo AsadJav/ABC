@@ -3,7 +3,6 @@ package com.github.shortiosdk
 import android.content.Intent
 import android.net.Uri
 import com.github.shortiosdk.Helpers.StringOrIntSerializer
-import com.github.shortiosdk.Model.UrlComponents
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -69,11 +68,9 @@ object ShortioSdk {
         }
     }
 
-    fun handleIntent(intent: Intent): UrlComponents? {
-        val data: Uri? = intent.data
-        return data?.host?.let { host ->
-            val pathSegment = data.pathSegments.firstOrNull()
-            UrlComponents(host, pathSegment)
-        }
+    fun handleIntent(intent: Intent): Uri? {
+        val uri = intent?.data ?: return null
+        if (uri.scheme.isNullOrEmpty()) return null
+        return uri
     }
 }
