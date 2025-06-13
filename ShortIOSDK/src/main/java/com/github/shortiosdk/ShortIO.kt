@@ -69,7 +69,7 @@ object ShortioSdk {
         }
     }
 
-    fun handleIntent(intent: Intent?): URL? {
+    fun handleIntent(intent: Intent): URL? {
         val uri = intent?.data ?: return null
         val scheme = uri.scheme?.lowercase()
         if (scheme != "http" && scheme != "https") return null
