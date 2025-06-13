@@ -1,12 +1,13 @@
 package com.github.shortiosdk
 
-import android.content.Intent
-import android.net.Uri
 import com.github.shortiosdk.Helpers.StringOrIntSerializer
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.gson.GsonBuilder
+import android.content.Intent
+import java.net.MalformedURLException
+import java.net.URL
 
 
 object ShortioSdk {
@@ -68,9 +69,14 @@ object ShortioSdk {
         }
     }
 
-    fun handleIntent(intent: Intent): Uri? {
+    fun handleIntent(intent: Intent?): URL? {
         val uri = intent?.data ?: return null
-        if (uri.scheme.isNullOrEmpty()) return null
-        return uri
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") return null
+        return try {
+            URL(uri.toString())
+        } catch (e: MalformedURLException) {
+            null
+        }
     }
 }
