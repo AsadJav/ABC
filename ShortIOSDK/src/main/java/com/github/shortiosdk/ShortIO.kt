@@ -1,13 +1,13 @@
 package com.github.shortiosdk
 
-import com.github.shortiosdk.Helpers.StringOrIntSerializer
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.gson.GsonBuilder
 import android.content.Intent
-import java.net.MalformedURLException
-import java.net.URL
+import android.util.Log
+import com.github.shortiosdk.Helpers.StringOrIntSerializer
+import com.github.shortiosdk.Helpers.HandleClick
 
 
 object ShortioSdk {
@@ -24,7 +24,7 @@ object ShortioSdk {
         val body = jsonBody.toRequestBody(mediaType)
 
         val request = Request.Builder()
-            .url("https://api.short.io/links/public")
+            .url(shortioUrl)
             .post(body)
             .addHeader("accept", "application/json")
             .addHeader("content-type", "application/json")
@@ -69,14 +69,33 @@ object ShortioSdk {
         }
     }
 
-    fun handleIntent(intent: Intent): URL? {
-        val uri = intent?.data ?: return null
+    fun handleIntent(intent: Intent): UrlComponents? {
+        val uri = intent.data ?: return null
         val scheme = uri.scheme?.lowercase()
         if (scheme != "http" && scheme != "https") return null
-        return try {
-            URL(uri.toString())
-        } catch (e: MalformedURLException) {
-            null
+
+        val host = uri.host ?: return null
+
+        var response: String? = null
+        val thread = Thread {
+            response = HandleClick(uri.toString())
+            Log.d("HandleClickResponse", "Response: $response")
         }
+        thread.start()
+        thread.join()
+
+        if (response == "200") {
+            Log.d("HandleClickResponse","Short SDK click call completed successfully.")
+        } else {
+            Log.d("HandleClickError","Error:- ${response}")
+        }
+        return UrlComponents(
+            scheme = scheme,
+            host = host,
+            path = uri.path?.removePrefix("/"),
+            query = uri.encodedQuery,
+            fragment = uri.fragment,
+            fullUrl = uri.toString()
+        )
     }
 }
